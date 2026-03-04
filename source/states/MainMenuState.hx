@@ -1,11 +1,24 @@
 package states;
 
 import flixel.FlxObject;
+import flixel.FlxSprite;
+import flixel.FlxG;
+import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.addons.transition.FlxTransitionableState;
 import flixel.effects.FlxFlicker;
+import flixel.text.FlxText;
+import flixel.tweens.FlxTween;
+import flixel.util.FlxColor;
 import lime.app.Application;
 import states.editors.MasterEditorMenu;
 import options.OptionsState;
+import backend.CoolUtil;
+import backend.Achievements;
+import backend.ClientPrefs;
+import backend.DiscordClient;
+import backend.Mods;
+import backend.Paths;
+import substates.ResetMouseSubState; // Добавьте этот импорт если его нет
 
 class MainMenuState extends MusicBeatState
 {
@@ -161,28 +174,30 @@ class MainMenuState extends MusicBeatState
 
 					FlxFlicker.flicker(menuItems.members[curSelected], 1, 0.06, false, false, function(flick:FlxFlicker)
 					{
+						// ИСПРАВЛЕНИЕ: Используем правильный вызов switchState без указания типа
+						var nextState:FlxTransitionableState = null;
+						
 						switch (optionShit[curSelected])
 						{
 							case 'story_mode':
-								MusicBeatState.switchState(new StoryMenuState());
+								nextState = new StoryMenuState();
 							case 'freeplay':
-								MusicBeatState.switchState(new FreeplayState());
+								nextState = new FreeplayState();
 
 							#if MODS_ALLOWED
 							case 'mods':
-								MusicBeatState.switchState(new ModsMenuState());
+								nextState = new ModsMenuState();
 							#end
 
 							#if ACHIEVEMENTS_ALLOWED
 							case 'awards':
-								MusicBeatState.switchState(new AchievementsMenuState());
+								nextState = new AchievementsMenuState();
 							#end
 
 							case 'credits':
-								MusicBeatState.switchState(new CreditsState());
+								nextState = new CreditsState();
 							case 'options':
-								// ИСПРАВЛЕНИЕ: Используем правильный тип для nextState
-								MusicBeatState.switchState(new OptionsState());
+								nextState = new OptionsState();
 								OptionsState.onPlayState = false;
 								if (PlayState.SONG != null)
 								{
@@ -191,6 +206,9 @@ class MainMenuState extends MusicBeatState
 									PlayState.stageUI = 'normal';
 								}
 						}
+						
+						if (nextState != null)
+							MusicBeatState.switchState(nextState);
 					});
 
 					for (i in 0...menuItems.members.length)
