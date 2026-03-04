@@ -9,16 +9,12 @@ import flixel.effects.FlxFlicker;
 import flixel.text.FlxText;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
+import flixel.util.FlxTimer;
 import lime.app.Application;
 import states.editors.MasterEditorMenu;
 import options.OptionsState;
-import backend.CoolUtil;
-import backend.Achievements;
-import backend.ClientPrefs;
-import backend.DiscordClient;
-import backend.Mods;
-import backend.Paths;
-import substates.ResetMouseSubState; // Добавьте этот импорт если его нет
+
+// Убираем импорт ResetMouseSubState если его нет
 
 class MainMenuState extends MusicBeatState
 {
@@ -122,14 +118,15 @@ class MainMenuState extends MusicBeatState
 		Achievements.reloadList();
 		#end
 		#end
-		
-		#if mobile
-		addVirtualPad(UP_DOWN, A_B_C);
-		#end
 
 		super.create();
 
 		FlxG.camera.follow(camFollow, null, 9);
+		
+		// Добавляем виртуальный пад для мобильных устройств ПОСЛЕ super.create()
+		#if mobile
+		addVirtualPad(UP_DOWN, A_B_C);
+		#end
 	}
 
 	var selectedSomethin:Bool = false;
@@ -172,43 +169,12 @@ class MainMenuState extends MusicBeatState
 					if (ClientPrefs.data.flashing)
 						FlxFlicker.flicker(magenta, 1.1, 0.15, false);
 
+					// ИСПРАВЛЕНИЕ: Выносим переключение состояния в отдельную функцию
+					var selectedOption = optionShit[curSelected];
+					
 					FlxFlicker.flicker(menuItems.members[curSelected], 1, 0.06, false, false, function(flick:FlxFlicker)
 					{
-						// ИСПРАВЛЕНИЕ: Используем правильный вызов switchState без указания типа
-						var nextState:FlxTransitionableState = null;
-						
-						switch (optionShit[curSelected])
-						{
-							case 'story_mode':
-								nextState = new StoryMenuState();
-							case 'freeplay':
-								nextState = new FreeplayState();
-
-							#if MODS_ALLOWED
-							case 'mods':
-								nextState = new ModsMenuState();
-							#end
-
-							#if ACHIEVEMENTS_ALLOWED
-							case 'awards':
-								nextState = new AchievementsMenuState();
-							#end
-
-							case 'credits':
-								nextState = new CreditsState();
-							case 'options':
-								nextState = new OptionsState();
-								OptionsState.onPlayState = false;
-								if (PlayState.SONG != null)
-								{
-									PlayState.SONG.arrowSkin = null;
-									PlayState.SONG.splashSkin = null;
-									PlayState.stageUI = 'normal';
-								}
-						}
-						
-						if (nextState != null)
-							MusicBeatState.switchState(nextState);
+						switchToState(selectedOption);
 					});
 
 					for (i in 0...menuItems.members.length)
@@ -225,7 +191,13 @@ class MainMenuState extends MusicBeatState
 					}
 				}
 			}
-			if (controls.justPressed('debug_1') || virtualPad.buttonC.justPressed)
+			
+			// ИСПРАВЛЕНИЕ: Проверяем наличие virtualPad перед использованием
+			#if mobile
+			if (controls.justPressed('debug_1') || (virtualPad != null && virtualPad.buttonC.justPressed))
+			#else
+			if (controls.justPressed('debug_1'))
+			#end
 			{
 				selectedSomethin = true;
 				MusicBeatState.switchState(new MasterEditorMenu());
@@ -233,6 +205,40 @@ class MainMenuState extends MusicBeatState
 		}
 
 		super.update(elapsed);
+	}
+	
+	// Новая функция для переключения состояний
+	function switchToState(option:String)
+	{
+		switch (option)
+		{
+			case 'story_mode':
+				MusicBeatState.switchState(new StoryMenuState());
+			case 'freeplay':
+				MusicBeatState.switchState(new FreeplayState());
+
+			#if MODS_ALLOWED
+			case 'mods':
+				MusicBeatState.switchState(new ModsMenuState());
+			#end
+
+			#if ACHIEVEMENTS_ALLOWED
+			case 'awards':
+				MusicBeatState.switchState(new AchievementsMenuState());
+			#end
+
+			case 'credits':
+				MusicBeatState.switchState(new CreditsState());
+			case 'options':
+				OptionsState.onPlayState = false;
+				if (PlayState.SONG != null)
+				{
+					PlayState.SONG.arrowSkin = null;
+					PlayState.SONG.splashSkin = null;
+					PlayState.stageUI = 'normal';
+				}
+				MusicBeatState.switchState(new OptionsState());
+		}
 	}
 
 	function changeItem(huh:Int = 0)
