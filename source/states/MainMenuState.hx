@@ -85,10 +85,8 @@ class MainMenuState extends MusicBeatState
 			menuItem.scrollFactor.set(0, scr);
 			menuItem.updateHitbox();
 			
-			// ИЗМЕНЕНИЕ: Устанавливаем позицию по X влево (например, 100 пикселей от левого края)
-			menuItem.x = 100; // Измените это значение для регулировки отступа слева
-			// Убираем screenCenter(X) чтобы кнопки не центрировались по горизонтали
-			// menuItem.screenCenter(X);
+			// Перемещаем кнопки влево
+			menuItem.x = 100; // Отступ от левого края
 		}
 
 		var psychVer:FlxText = new FlxText(12, FlxG.height - 44, 0, "Psych Engine v" + psychEngineVersion, 12);
@@ -183,6 +181,7 @@ class MainMenuState extends MusicBeatState
 							case 'credits':
 								MusicBeatState.switchState(new CreditsState());
 							case 'options':
+								// ИСПРАВЛЕНИЕ: Используем правильный тип для nextState
 								MusicBeatState.switchState(new OptionsState());
 								OptionsState.onPlayState = false;
 								if (PlayState.SONG != null)
@@ -223,9 +222,6 @@ class MainMenuState extends MusicBeatState
 		FlxG.sound.play(Paths.sound('scrollMenu'));
 		menuItems.members[curSelected].animation.play('idle');
 		menuItems.members[curSelected].updateHitbox();
-		
-		// ИЗМЕНЕНИЕ: Убираем screenCenter(X) для невыбранного элемента
-		// menuItems.members[curSelected].screenCenter(X);
 
 		curSelected += huh;
 
@@ -236,9 +232,6 @@ class MainMenuState extends MusicBeatState
 
 		menuItems.members[curSelected].animation.play('selected');
 		menuItems.members[curSelected].centerOffsets();
-		
-		// ИЗМЕНЕНИЕ: Убираем screenCenter(X) для выбранного элемента
-		// menuItems.members[curSelected].screenCenter(X);
 
 		camFollow.setPosition(menuItems.members[curSelected].getGraphicMidpoint().x,
 			menuItems.members[curSelected].getGraphicMidpoint().y - (menuItems.length > 4 ? menuItems.length * 8 : 0));
