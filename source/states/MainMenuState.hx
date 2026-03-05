@@ -13,6 +13,7 @@ import flixel.util.FlxTimer;
 import lime.app.Application;
 import states.editors.MasterEditorMenu;
 import options.OptionsState;
+import mobile.flixel.FlxVirtualPad; // Добавляем импорт для виртуального пада
 
 class MainMenuState extends MusicBeatState
 {
@@ -32,6 +33,10 @@ class MainMenuState extends MusicBeatState
 
 	var magenta:FlxSprite;
 	var camFollow:FlxObject;
+	
+	#if mobile
+	var virtualPad:FlxVirtualPad; // Объявляем переменную для мобильных устройств
+	#end
 
 	override function create()
 	{
@@ -90,9 +95,8 @@ class MainMenuState extends MusicBeatState
 			menuItem.scrollFactor.set(0, scr);
 			menuItem.updateHitbox();
 			
-			// ИЗМЕНЕНИЕ: Кнопки слева
-			menuItem.x = 100; // Отступ от левого края
-			// menuItem.screenCenter(X); // Убираем центрирование
+			// Кнопки слева
+			menuItem.x = 100;
 		}
 
 		var psychVer:FlxText = new FlxText(12, FlxG.height - 44, 0, "Psych Engine v" + psychEngineVersion, 12);
@@ -115,8 +119,13 @@ class MainMenuState extends MusicBeatState
 		#end
 		#end
 
-		addTouchPad("UP_DOWN", "A_B_E");
-		
+		// ИСПРАВЛЕНИЕ: Используем addVirtualPad вместо addTouchPad
+		#if mobile
+		virtualPad = new FlxVirtualPad(UP_DOWN, A_B_C);
+		virtualPad.alpha = 0.5; // Можно настроить прозрачность
+		add(virtualPad);
+		#end
+
 		super.create();
 		FlxG.camera.follow(camFollow, null, 9);
 	}
@@ -211,7 +220,13 @@ class MainMenuState extends MusicBeatState
 					}
 				}
 			}
-			else if (controls.justPressed('debug_1') || (touchPad != null && touchPad.buttonE.justPressed))
+			
+			// ИСПРАВЛЕНИЕ: Проверяем наличие virtualPad
+			#if mobile
+			if (controls.justPressed('debug_1') || (virtualPad != null && virtualPad.buttonC.justPressed))
+			#else
+			if (controls.justPressed('debug_1'))
+			#end
 			{
 				selectedSomethin = true;
 				MusicBeatState.switchState(new MasterEditorMenu());
@@ -229,7 +244,6 @@ class MainMenuState extends MusicBeatState
 		{
 			menuItems.members[curSelected].animation.play('idle');
 			menuItems.members[curSelected].updateHitbox();
-			// Убираем screenCenter(X)
 		}
 
 		curSelected += huh;
@@ -243,7 +257,6 @@ class MainMenuState extends MusicBeatState
 		{
 			menuItems.members[curSelected].animation.play('selected');
 			menuItems.members[curSelected].centerOffsets();
-			// Убираем screenCenter(X)
 		}
 
 		camFollow.setPosition(
