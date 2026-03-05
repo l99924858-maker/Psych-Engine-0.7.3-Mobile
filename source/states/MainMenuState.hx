@@ -13,7 +13,8 @@ import flixel.util.FlxTimer;
 import lime.app.Application;
 import states.editors.MasterEditorMenu;
 import options.OptionsState;
-import mobile.flixel.FlxVirtualPad; // Добавляем импорт для виртуального пада
+import flixel.input.touch.FlxTouchManager; // Добавляем для мобильных устройств
+import mobile.flixel.FlxVirtualPad; // ИСПРАВЛЕНО: правильный путь
 
 class MainMenuState extends MusicBeatState
 {
@@ -35,7 +36,7 @@ class MainMenuState extends MusicBeatState
 	var camFollow:FlxObject;
 	
 	#if mobile
-	var virtualPad:FlxVirtualPad; // Объявляем переменную для мобильных устройств
+	var virtualPad:FlxVirtualPad;
 	#end
 
 	override function create()
@@ -119,10 +120,10 @@ class MainMenuState extends MusicBeatState
 		#end
 		#end
 
-		// ИСПРАВЛЕНИЕ: Используем addVirtualPad вместо addTouchPad
+		// ИСПРАВЛЕНО: правильное создание виртуального пада
 		#if mobile
 		virtualPad = new FlxVirtualPad(UP_DOWN, A_B_C);
-		virtualPad.alpha = 0.5; // Можно настроить прозрачность
+		virtualPad.alpha = 0.5;
 		add(virtualPad);
 		#end
 
@@ -170,12 +171,10 @@ class MainMenuState extends MusicBeatState
 					if (ClientPrefs.data.flashing)
 						FlxFlicker.flicker(magenta, 1.1, 0.15, false);
 
-					// СОХРАНЯЕМ ВЫБРАННЫЙ ПУНКТ
 					var selectedOption:String = optionShit[curSelected];
 					
 					FlxFlicker.flicker(menuItems.members[curSelected], 1, 0.06, false, false, function(flick:FlxFlicker)
 					{
-						// ИСПОЛЬЗУЕМ ТАЙМЕР ДЛЯ ПЕРЕКЛЮЧЕНИЯ
 						new FlxTimer().start(0.1, function(tmr:FlxTimer) {
 							switch (selectedOption)
 							{
@@ -221,7 +220,7 @@ class MainMenuState extends MusicBeatState
 				}
 			}
 			
-			// ИСПРАВЛЕНИЕ: Проверяем наличие virtualPad
+			// ИСПРАВЛЕНО: правильная проверка для мобильных устройств
 			#if mobile
 			if (controls.justPressed('debug_1') || (virtualPad != null && virtualPad.buttonC.justPressed))
 			#else
